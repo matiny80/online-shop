@@ -69,25 +69,25 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room3.compiler)
 
-    implementation("com.google.dagger:hilt-android:2.60.1")
-    ksp("com.google.dagger:hilt-compiler:2.60.1")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
-    implementation("androidx.hilt:hilt-navigation-compose:1.4.0")
+    implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
-    implementation("com.squareup.okhttp3:okhttp:5.5.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.5.0")
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
-    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation(libs.androidx.datastore.preferences)
 
-    implementation("io.coil-kt.coil3:coil-compose:3.6.2")
+    implementation(libs.coil.compose)
 
-    implementation("androidx.paging:paging-runtime:3.5.1")
-    implementation("androidx.paging:paging-compose:3.5.1")
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 
 }
