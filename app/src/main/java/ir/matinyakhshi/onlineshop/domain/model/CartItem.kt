@@ -1,3 +1,6 @@
 package ir.matinyakhshi.onlineshop.domain.model
 
-data class CartItem()
+data class CartItem(
+    val product: Product,
+    val quantity: Int
+)
