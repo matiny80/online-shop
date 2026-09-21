@@ -1,17 +1,17 @@
 package ir.matinyakhshi.onlineshop.domain.repository
 
 import ir.matinyakhshi.onlineshop.domain.model.Product
-import kotlin.Result
+import ir.matinyakhshi.onlineshop.core.util.Resource
 
 interface ProductRepository {
 
-    suspend fun getProducts(): Result<List<Product>>
+    suspend fun getProducts(): Resource<List<Product>>
 
     suspend fun getProductById(
         productId: String
-    ): Result<Product>
+    ): Resource<Product>
 
     suspend fun getProductsByCategory(
         categoryId: String
-    ): Result<List<Product>>
+    ): Resource<List<Product>>
 }
