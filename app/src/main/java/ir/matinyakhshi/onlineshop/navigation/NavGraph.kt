@@ -39,9 +39,9 @@ fun SetupNavGraph(
     ) {
         // صفحه ورود
         composable(route = Screen.Auth.route) {
-            val authViewModel: AuthViewModel = hiltViewModel()
+            val viewModel: AuthViewModel = hiltViewModel()
             AuthScreen(
-                viewModel = authViewModel,
+                viewModel = viewModel,
                 onAuthSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
@@ -72,8 +72,7 @@ fun SetupNavGraph(
             ProductDetailScreen(
                 viewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
-                onAddToCartClick = { product ->
-                    viewModel.addToCart(product)
+                onAddToCartClick = {
                     navController.navigate(Screen.Cart.route)
                 }
             )
@@ -84,6 +83,9 @@ fun SetupNavGraph(
             val viewModel: CartViewModel = hiltViewModel()
             CartScreen(
                 viewModel = viewModel,
+                onChangeAddressClick = {
+                    // مسیر آدرس‌ها
+                },
                 onCheckoutClick = {
                     navController.navigate(Screen.Checkout.route)
                 }
@@ -99,7 +101,9 @@ fun SetupNavGraph(
                 onBackClick = { navController.popBackStack() },
                 onOrderSuccess = {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                        popUpTo(Screen.Home.route) {
+                            inclusive = false
+                        }
                     }
                 }
             )

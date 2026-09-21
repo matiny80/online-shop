@@ -95,4 +95,6 @@ dependencies {
 
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }

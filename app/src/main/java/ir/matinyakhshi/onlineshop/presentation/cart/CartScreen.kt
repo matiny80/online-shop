@@ -14,10 +14,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailViewModel
 import ir.matinyakhshi.onlineshop.ui.theme.*
 
 @Composable
 fun CartScreen(
+    viewModel: CartViewModel = hiltViewModel(),
     onChangeAddressClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
