@@ -1,68 +1,167 @@
 package ir.matinyakhshi.onlineshop.presentation.product
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import ir.matinyakhshi.onlineshop.data.model.ProductDto
+import androidx.compose.ui.unit.sp
+import ir.matinyakhshi.onlineshop.R
+import ir.matinyakhshi.onlineshop.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
-    viewModel: ProductDetailViewModel,
     onBackClick: () -> Unit,
-    onAddToCartClick: (ProductDto) -> Unit
+    onAddToCartClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    var quantity by remember { mutableIntStateOf(1) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("جزئیات محصول") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "بازگشت")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundCream)) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 80.dp)
         ) {
-            when (val state = uiState) {
-                is ProductDetailUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-
-                is ProductDetailUiState.Success -> {
-                    ProductDetailContent(
-                        product = state.product,
-                        onAddToCartClick = onAddToCartClick
+            // Top Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = TextDark
                     )
                 }
+                Text("جزئیات محصول", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.width(48.dp))
+            }
 
-                is ProductDetailUiState.Error -> {
-                    Text(
-                        text = state.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
+            // Image Slider Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Badge Discount
+                    Box(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(BorderRed)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .align(Alignment.TopEnd)
+                    ) {
+                        Text("%۱۵", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    // Main Product Image Placeholder
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground), // جایگزین با عکس محصول
+                        contentDescription = "Product Image",
+                        modifier = Modifier
+                            .size(200.dp)
+                            .align(Alignment.Center)
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Content Section
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                // Title and Rating
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("ست سویشرت و شلوار مردانه", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFB800), modifier = Modifier.size(18.dp))
+                        Text("۴.۵", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Description Title & Text
+                Text("توضیحات", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "با توجه به تفاوت رنگ‌ها در صفحه نمایش دستگاه‌های مختلف، ممکن است رنگ محصول ۱۰٪ تا ۱۵٪ با واقعیت متفاوت باشد.",
+                    fontSize = 13.sp,
+                    color = TextGray,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Features Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("ویژگی‌ها", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        FeatureRow(label = "وزن خالص:", value = "۴۲۰ گرم")
+                        FeatureRow(label = "وزن با بسته‌بندی:", value = "۴۵۰ گرم")
+                    }
+                }
+            }
+        }
+
+        // Bottom Add To Cart Bar
+        Surface(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            shadowElevation = 8.dp,
+            color = Color.White
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Price Section
+                Column {
+                    Text("۱,۸۵۰,۰۰۰ تومان", fontSize = 12.sp, color = TextGray, textDecoration = TextDecoration.LineThrough)
+                    Text("۱,۵۵۰,۰۰۰ تومان", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BorderRed)
+                }
+
+                // Add Button
+                Button(
+                    onClick = onAddToCartClick,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary)
+                ) {
+                    Text("افزودن به سبد خرید", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -70,72 +169,9 @@ fun ProductDetailScreen(
 }
 
 @Composable
-fun ProductDetailContent(
-    product: ProductDto,
-    onAddToCartClick: (ProductDto) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        // تصویر اصلی محصول
-        AsyncImage(
-            model = product.images.firstOrNull(),
-            contentDescription = product.title,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // عنوان محصول
-        Text(
-            text = product.title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // قیمت
-        Text(
-            text = "${product.price} تومان",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // توضیحات محصول
-        Text(
-            text = "توضیحات محصول",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = product.description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // دکمه افزودن به سبد خرید
-        Button(
-            onClick = { onAddToCartClick(product) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text("افزودن به سبد خرید", style = MaterialTheme.typography.titleMedium)
-        }
+private fun FeatureRow(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, fontSize = 12.sp, color = TextGray)
+        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextDark)
     }
 }

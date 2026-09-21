@@ -7,6 +7,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import ir.matinyakhshi.onlineshop.presentation.auth.AuthScreen
+import ir.matinyakhshi.onlineshop.presentation.auth.AuthViewModel
 import ir.matinyakhshi.onlineshop.presentation.cart.CartScreen
 import ir.matinyakhshi.onlineshop.presentation.cart.CartViewModel
 import ir.matinyakhshi.onlineshop.presentation.cart.CheckoutScreen
@@ -16,66 +18,88 @@ import ir.matinyakhshi.onlineshop.presentation.home.StoreViewModel
 import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailScreen
 import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailViewModel
 
+sealed class Screen(val route: String) {
+    object Auth : Screen("auth_screen")
+    object Home : Screen("home_screen")
+    object ProductDetail : Screen("product_detail/{productId}") {
+        fun createRoute(productId: String) = "product_detail/$productId"
+    }
+    object Cart : Screen("cart_screen")
+    object Checkout : Screen("checkout_screen")
+}
+
 @Composable
-fun AppNavGraph(
+fun SetupNavGraph(
     navController: NavHostController,
-    startDestination: String = "home",
     storeId: String = "default_store"
 ) {
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = Screen.Auth.route
     ) {
-        composable(route = "home") {
-            val viewModel: StoreViewModel = hiltViewModel()
-
-            HomeScreen(
-                viewModel = viewModel,
-                onNavigateToProductDetail = { productId ->
-                    navController.navigate("product_detail/$productId")
+        // صفحه ورود
+        composable(route = Screen.Auth.route) {
+            val authViewModel: AuthViewModel = hiltViewModel()
+            AuthScreen(
+                viewModel = authViewModel,
+                onAuthSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Auth.route) { inclusive = true }
+                    }
                 }
             )
         }
 
+        // صفحه اصلی
+        composable(route = Screen.Home.route) {
+            val viewModel: StoreViewModel = hiltViewModel()
+            HomeScreen(
+                viewModel = viewModel,
+                onNavigateToProductDetail = { productId ->
+                    navController.navigate(Screen.ProductDetail.createRoute(productId))
+                }
+            )
+        }
+
+        // صفحه جزئیات محصول
         composable(
-            route = "product_detail/{productId}",
+            route = Screen.ProductDetail.route,
             arguments = listOf(
                 navArgument("productId") { type = NavType.StringType }
             )
         ) {
             val viewModel: ProductDetailViewModel = hiltViewModel()
-
             ProductDetailScreen(
                 viewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
                 onAddToCartClick = { product ->
                     viewModel.addToCart(product)
-                    navController.navigate("cart")
+                    navController.navigate(Screen.Cart.route)
                 }
             )
         }
 
-        composable(route = "cart") {
+        // صفحه سبد خرید
+        composable(route = Screen.Cart.route) {
             val viewModel: CartViewModel = hiltViewModel()
-
             CartScreen(
                 viewModel = viewModel,
                 onCheckoutClick = {
-                    navController.navigate("checkout")
+                    navController.navigate(Screen.Checkout.route)
                 }
             )
         }
 
-        composable(route = "checkout") {
+        // صفحه تسویه حساب
+        composable(route = Screen.Checkout.route) {
             val viewModel: CheckoutViewModel = hiltViewModel()
-
             CheckoutScreen(
                 viewModel = viewModel,
                 storeId = storeId,
                 onBackClick = { navController.popBackStack() },
                 onOrderSuccess = {
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 }
             )
