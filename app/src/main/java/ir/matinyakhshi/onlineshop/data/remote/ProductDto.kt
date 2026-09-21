@@ -1,4 +1,4 @@
-package ir.matinyakhshi.onlineshop.data.model
+package com.example.yourapp.data.remote.model
 
 import com.google.gson.annotations.SerializedName
 
@@ -9,5 +9,5 @@ data class ProductDto(
     @SerializedName("price") val price: Double,
     @SerializedName("discount_price") val discountPrice: Double,
     @SerializedName("stock") val stock: Int,
-    @SerializedName("images") val images: List<String> // <-- مطمئن شو این فیلد وجود داره
+    @SerializedName("images") val images: List<String>
 )
