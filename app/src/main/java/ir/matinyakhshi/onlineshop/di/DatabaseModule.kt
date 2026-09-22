@@ -8,7 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.matinyakhshi.onlineshop.data.local.AppDatabase
-import ir.matinyakhshi.onlineshop.data.local.CartDao
+import ir.matinyakhshi.onlineshop.data.local.dao.CartDao
 import javax.inject.Singleton
 
 @Module
@@ -24,7 +24,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "online_shop_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

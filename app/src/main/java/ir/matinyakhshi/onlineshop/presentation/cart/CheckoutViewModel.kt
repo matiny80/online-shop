@@ -3,7 +3,8 @@ package ir.matinyakhshi.onlineshop.presentation.cart
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.matinyakhshi.onlineshop.data.local.CartDao
+import ir.matinyakhshi.onlineshop.data.local.dao.CartDao
+import ir.matinyakhshi.onlineshop.data.local.entity.CartItemEntity // ✅ اضافه شدن ایمپورت Entity
 import ir.matinyakhshi.onlineshop.data.remote.ApiService
 import ir.matinyakhshi.onlineshop.data.remote.model.CreateOrderRequest
 import ir.matinyakhshi.onlineshop.data.remote.model.OrderItemDto
@@ -32,7 +33,8 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = CheckoutUiState.Loading
             try {
-                val cartItems = cartDao.getAllCartItems().first()
+                // ✅ اصلاح نام تابع از getAllCartItems به getCartItems
+                val cartItems = cartDao.getCartItems().first()
                 if (cartItems.isEmpty()) {
                     _uiState.value = CheckoutUiState.Error("سبد خرید خالی است")
                     return@launch

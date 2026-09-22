@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.matinyakhshi.onlineshop.data.local.CartDao
-import ir.matinyakhshi.onlineshop.data.local.CartItemEntity
+import ir.matinyakhshi.onlineshop.data.local.dao.CartDao
+import ir.matinyakhshi.onlineshop.data.local.entity.CartItemEntity // ✅ اصلاح پکیج CartItemEntity
 import ir.matinyakhshi.onlineshop.data.model.ProductDto
 import ir.matinyakhshi.onlineshop.data.remote.ApiService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,13 +46,14 @@ class ProductDetailViewModel @Inject constructor(
     fun addToCart(product: ProductDto) {
         viewModelScope.launch {
             val cartItem = CartItemEntity(
-                productId = product.id,
+                productId = product.id.toString(), // تبدیل به String در صورت Int بودن ID
                 title = product.title,
                 price = product.price,
+                discountPrice = product.discountPrice, // مقداردهی قیمت تخفیف‌خورده (در صورت وجود در Dto)
                 imageUrl = product.images.firstOrNull(),
                 quantity = 1
             )
-            cartDao.insertOrUpdateItem(cartItem)
+            cartDao.insertOrUpdate(cartItem) // ✅ اصلاح نام متد از insertOrUpdateItem به insertOrUpdate
         }
     }
 }
