@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.matinyakhshi.onlineshop.data.local.dao.CartDao
-import ir.matinyakhshi.onlineshop.data.local.entity.CartItemEntity // ✅ اضافه شدن ایمپورت Entity
 import ir.matinyakhshi.onlineshop.data.remote.ApiService
 import ir.matinyakhshi.onlineshop.data.remote.model.CreateOrderRequest
 import ir.matinyakhshi.onlineshop.data.remote.model.OrderItemDto
@@ -33,7 +32,6 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = CheckoutUiState.Loading
             try {
-                // ✅ اصلاح نام تابع از getAllCartItems به getCartItems
                 val cartItems = cartDao.getCartItems().first()
                 if (cartItems.isEmpty()) {
                     _uiState.value = CheckoutUiState.Error("سبد خرید خالی است")
@@ -58,8 +56,8 @@ class CheckoutViewModel @Inject constructor(
 
                 val response = apiService.createOrder(request)
                 if (response.isSuccessful) {
-                    cartDao.clearCart() // پاک کردن سبد خرید پس از ثبت موفق
-                    _uiState.value = CheckoutUiState.Success
+                    cartDao.clearCart()
+                    _uiState.value = CheckoutUiState.Success()
                 } else {
                     _uiState.value = CheckoutUiState.Error("خطا در ثبت سفارش")
                 }

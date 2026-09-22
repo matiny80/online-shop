@@ -3,6 +3,7 @@ package ir.matinyakhshi.onlineshop.presentation.auth
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,6 +78,14 @@ fun AuthScreen(
             } else {
                 Text("ورود به برنامه")
             }
+        }
+
+        Button(
+            onClick = { onAuthSuccess() }, // مستقیم به HomeScreen می‌رود
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("ورود مهمان (تست صفحات)")
         }
     }
 }

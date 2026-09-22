@@ -13,9 +13,11 @@ import ir.matinyakhshi.onlineshop.presentation.cart.CartScreen
 import ir.matinyakhshi.onlineshop.presentation.cart.CartViewModel
 import ir.matinyakhshi.onlineshop.presentation.cart.CheckoutScreen
 import ir.matinyakhshi.onlineshop.presentation.cart.CheckoutViewModel
+import ir.matinyakhshi.onlineshop.presentation.cart.OrderSuccessScreen
 import ir.matinyakhshi.onlineshop.presentation.home.HomeScreen
 import ir.matinyakhshi.onlineshop.presentation.home.StoreViewModel
-import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailScreen
+// اصلاح Import براساس پکیج‌نیم جدید شما
+import ir.matinyakhshi.onlineshop.presentation.product.detail.ProductDetailScreen
 import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailViewModel
 
 sealed class Screen(val route: String) {
@@ -25,7 +27,10 @@ sealed class Screen(val route: String) {
         fun createRoute(productId: String) = "product_detail/$productId"
     }
     object Cart : Screen("cart_screen")
-    object Checkout : Screen("checkout_screen")
+    object Checkout : Screen("checkout_screen/{storeId}") {
+        fun createRoute(storeId: String) = "checkout_screen/$storeId"
+    }
+    object OrderSuccess : Screen("order_success_screen")
 }
 
 @Composable
@@ -37,7 +42,7 @@ fun SetupNavGraph(
         navController = navController,
         startDestination = Screen.Auth.route
     ) {
-        // صفحه ورود
+        // ۱. صفحه ورود
         composable(route = Screen.Auth.route) {
             val viewModel: AuthViewModel = hiltViewModel()
             AuthScreen(
@@ -50,7 +55,7 @@ fun SetupNavGraph(
             )
         }
 
-        // صفحه اصلی
+        // ۲. صفحه اصلی
         composable(route = Screen.Home.route) {
             val viewModel: StoreViewModel = hiltViewModel()
             HomeScreen(
@@ -61,7 +66,7 @@ fun SetupNavGraph(
             )
         }
 
-        // صفحه جزئیات محصول
+        // ۳. صفحه جزئیات محصول
         composable(
             route = Screen.ProductDetail.route,
             arguments = listOf(
@@ -70,7 +75,6 @@ fun SetupNavGraph(
         ) {
             val viewModel: ProductDetailViewModel = hiltViewModel()
             ProductDetailScreen(
-                viewModel = viewModel,
                 onBackClick = { navController.popBackStack() },
                 onAddToCartClick = {
                     navController.navigate(Screen.Cart.route)
@@ -78,7 +82,7 @@ fun SetupNavGraph(
             )
         }
 
-        // صفحه سبد خرید
+        // ۴. صفحه سبد خرید
         composable(route = Screen.Cart.route) {
             val viewModel: CartViewModel = hiltViewModel()
             CartScreen(
@@ -87,23 +91,39 @@ fun SetupNavGraph(
                     // مسیر آدرس‌ها
                 },
                 onCheckoutClick = {
-                    navController.navigate(Screen.Checkout.route)
+                    navController.navigate(Screen.Checkout.createRoute(storeId))
                 }
             )
         }
 
-        // صفحه تسویه حساب
-        composable(route = Screen.Checkout.route) {
+        // ۵. صفحه تسویه حساب
+        composable(
+            route = Screen.Checkout.route,
+            arguments = listOf(
+                navArgument("storeId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentStoreId = backStackEntry.arguments?.getString("storeId") ?: storeId
             val viewModel: CheckoutViewModel = hiltViewModel()
+
             CheckoutScreen(
-                viewModel = viewModel,
-                storeId = storeId,
+                storeId = currentStoreId,
                 onBackClick = { navController.popBackStack() },
                 onOrderSuccess = {
+                    navController.navigate(Screen.OrderSuccess.route) {
+                        popUpTo(Screen.Cart.route) { inclusive = true }
+                    }
+                },
+                viewModel = viewModel
+            )
+        }
+
+        // ۶. صفحه موفقیت سفارش
+        composable(route = Screen.OrderSuccess.route) {
+            OrderSuccessScreen(
+                onHomeClick = {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) {
-                            inclusive = false
-                        }
+                        popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 }
             )

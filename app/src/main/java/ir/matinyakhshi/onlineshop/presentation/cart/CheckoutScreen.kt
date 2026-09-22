@@ -1,42 +1,53 @@
 package ir.matinyakhshi.onlineshop.presentation.cart
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
-    viewModel: CheckoutViewModel,
     storeId: String,
-    onBackClick: () -> Unit,
-    onOrderSuccess: () -> Unit
+    onBackClick: () -> Unit, // ✅ اضافه شد
+    onOrderSuccess: () -> Unit,
+    viewModel: CheckoutViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     var receiverName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState) {
-        if (uiState is CheckoutUiState.Success) {
-            onOrderSuccess()
+        when (uiState) {
+            is CheckoutUiState.Success -> {
+                Toast.makeText(context, "سفارش با موفقیت ثبت شد", Toast.LENGTH_SHORT).show()
+                onOrderSuccess()
+            }
+            is CheckoutUiState.Error -> {
+                val message = (uiState as CheckoutUiState.Error).message
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("اطلاعات ارسال و ثبت سفارش") },
+                title = { Text("تکمیل و ثبت سفارش") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "بازگشت")
+                    IconButton(onClick = onBackClick) { // ✅ استفاده از دکمه بازگشت
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "بازگشت")
                     }
                 }
             )
@@ -47,7 +58,7 @@ fun CheckoutScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedTextField(
                 value = receiverName,
@@ -66,20 +77,12 @@ fun CheckoutScreen(
             OutlinedTextField(
                 value = address,
                 onValueChange = { address = it },
-                label = { Text("آدرس کامل پستی") },
+                label = { Text("آدرس دقیق") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
 
             Spacer(modifier = Modifier.weight(1f))
-
-            if (uiState is CheckoutUiState.Error) {
-                Text(
-                    text = (uiState as CheckoutUiState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
 
             Button(
                 onClick = {
@@ -90,16 +93,13 @@ fun CheckoutScreen(
                         address = address
                     )
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
                 enabled = uiState !is CheckoutUiState.Loading && receiverName.isNotBlank() && phoneNumber.isNotBlank() && address.isNotBlank(),
-                shape = RoundedCornerShape(8.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 if (uiState is CheckoutUiState.Loading) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("نهایی‌سازی و ثبت سفارش")
+                    Text("تأیید و ثبت نهایی سفارش")
                 }
             }
         }

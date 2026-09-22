@@ -5,18 +5,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.matinyakhshi.onlineshop.data.local.dao.CartDao
 import ir.matinyakhshi.onlineshop.data.local.entity.CartItemEntity
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-data class CartUiState(
-    val cartItems: List<CartItemEntity> = emptyList(),
-    val rawTotalPrice: Double = 0.0,
-    val totalDiscount: Double = 0.0,
-    val shippingFee: Double = 100000.0,
-    val finalPrice: Double = 0.0,
-    val isLoading: Boolean = false
-)
 
 @HiltViewModel
 class CartViewModel @Inject constructor(
@@ -25,23 +19,32 @@ class CartViewModel @Inject constructor(
 
     val uiState: StateFlow<CartUiState> = cartDao.getCartItems()
         .map { items ->
-            val rawTotal = items.sumOf { (it.price) * it.quantity }
-            val discount = items.sumOf { ((it.price) - (it.discountPrice ?: it.price)) * it.quantity }
-            val shipping = if (items.isNotEmpty()) 100000.0 else 0.0
-            val final = (rawTotal - discount) + shipping
+            if (items.isEmpty()) {
+                CartUiState.Empty
+            } else {
+                // ✅ تبدیل هر دو سمت ضرب به Long و اطمینان از عدم null بودن
+                val totalPrice = items.sumOf { item ->
+                    (item.price ?: 0L).toLong() * item.quantity.toLong()
+                }
 
-            CartUiState(
-                cartItems = items,
-                rawTotalPrice = rawTotal,
-                totalDiscount = discount,
-                shippingFee = shipping,
-                finalPrice = final
-            )
+                val totalDiscount = items.sumOf { item ->
+                    (item.discountPrice ?: 0L).toLong() * item.quantity.toLong()
+                }
+
+                val finalPrice = totalPrice - totalDiscount
+
+                CartUiState.Success(
+                    cartItems = items,
+                    totalPrice = totalPrice,
+                    totalDiscount = totalDiscount,
+                    finalPrice = finalPrice
+                )
+            }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = CartUiState(isLoading = true)
+            initialValue = CartUiState.Loading
         )
 
     fun increaseQuantity(item: CartItemEntity) {
@@ -60,9 +63,9 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun removeItem(productId: String) {
+    fun removeItem(item: CartItemEntity) {
         viewModelScope.launch {
-            cartDao.deleteCartItem(productId)
+            cartDao.deleteCartItem(item.productId)
         }
     }
 }
