@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import ir.matinyakhshi.onlineshop.presentation.address.AddressScreen
 import ir.matinyakhshi.onlineshop.presentation.auth.AuthScreen
 import ir.matinyakhshi.onlineshop.presentation.auth.AuthViewModel
 import ir.matinyakhshi.onlineshop.presentation.cart.CartScreen
@@ -14,14 +15,19 @@ import ir.matinyakhshi.onlineshop.presentation.cart.CartViewModel
 import ir.matinyakhshi.onlineshop.presentation.cart.CheckoutScreen
 import ir.matinyakhshi.onlineshop.presentation.cart.CheckoutViewModel
 import ir.matinyakhshi.onlineshop.presentation.cart.OrderSuccessScreen
+import ir.matinyakhshi.onlineshop.presentation.category.CategoryProductsScreen
+import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
 import ir.matinyakhshi.onlineshop.presentation.home.HomeScreen
 import ir.matinyakhshi.onlineshop.presentation.home.StoreViewModel
-// اصلاح Import براساس پکیج‌نیم جدید شما
-import ir.matinyakhshi.onlineshop.presentation.product.detail.ProductDetailScreen
 import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailViewModel
+import ir.matinyakhshi.onlineshop.presentation.product.detail.ProductDetailScreen
+import ir.matinyakhshi.onlineshop.presentation.profile.OrdersHistoryScreen
 
 sealed class Screen(val route: String) {
+    object Address : Screen("address_screen")
     object Auth : Screen("auth_screen")
+    object Category : Screen("category_screen")
+    object OrdersHistory : Screen("orders_history_screen")
     object Home : Screen("home_screen")
     object ProductDetail : Screen("product_detail/{productId}") {
         fun createRoute(productId: String) = "product_detail/$productId"
@@ -36,7 +42,7 @@ sealed class Screen(val route: String) {
 @Composable
 fun SetupNavGraph(
     navController: NavHostController,
-    storeId: String = "default_store"
+    defaultStoreId: String = "default_store"
 ) {
     NavHost(
         navController = navController,
@@ -52,6 +58,40 @@ fun SetupNavGraph(
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // مسیریابی دسته‌بندی
+        composable(route = Screen.Category.route) {
+            CategoryScreen(
+                onCategoryClick = { categoryId ->
+                    // هدایت به لیست محصولات این دسته‌بندی
+                    navController.navigate("products_by_category/$categoryId")
+
+                }
+            )
+        }
+
+        composable(
+            route = "products_by_category/{categoryId}",
+            arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+            // اینجا Screen مربوط به لیست محصولات (مثلاً CategoryProductsScreen) را قرار بده
+            CategoryProductsScreen(
+                categoryId = categoryId,
+                onProductClick = { productId ->
+                    navController.navigate("product_detail/$productId")
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+
+// مسیریابی تاریخچه سفارشات
+        composable(route = Screen.OrdersHistory.route) {
+            OrdersHistoryScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -84,14 +124,20 @@ fun SetupNavGraph(
 
         // ۴. صفحه سبد خرید
         composable(route = Screen.Cart.route) {
-            val viewModel: CartViewModel = hiltViewModel()
             CartScreen(
-                viewModel = viewModel,
-                onChangeAddressClick = {
-                    // مسیر آدرس‌ها
-                },
-                onCheckoutClick = {
+                onNavigateToCheckout = { storeId ->
                     navController.navigate(Screen.Checkout.createRoute(storeId))
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.Address.route) {
+            AddressScreen(
+                onBackClick = { navController.popBackStack() },
+                onAddressSelected = { selectedAddress ->
+                    // ذخیره آدرس انتخابی و بازگشت
+                    navController.popBackStack()
                 }
             )
         }
@@ -103,18 +149,18 @@ fun SetupNavGraph(
                 navArgument("storeId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val currentStoreId = backStackEntry.arguments?.getString("storeId") ?: storeId
+            val currentStoreId = backStackEntry.arguments?.getString("storeId") ?: defaultStoreId
             val viewModel: CheckoutViewModel = hiltViewModel()
 
             CheckoutScreen(
                 storeId = currentStoreId,
-                onBackClick = { navController.popBackStack() },
+                viewModel = viewModel,
                 onOrderSuccess = {
                     navController.navigate(Screen.OrderSuccess.route) {
-                        popUpTo(Screen.Cart.route) { inclusive = true }
+                        popUpTo(Screen.Home.route) { inclusive = false }
                     }
                 },
-                viewModel = viewModel
+                onBackClick = { navController.popBackStack() }
             )
         }
 

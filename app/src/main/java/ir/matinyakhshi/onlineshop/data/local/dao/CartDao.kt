@@ -1,6 +1,10 @@
 package ir.matinyakhshi.onlineshop.data.local.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import ir.matinyakhshi.onlineshop.data.local.entity.CartItemEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -13,11 +17,8 @@ interface CartDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(item: CartItemEntity)
 
-    @Query("UPDATE cart_items SET quantity = :quantity WHERE productId = :productId")
-    suspend fun updateQuantity(productId: String, quantity: Int)
-
-    @Query("DELETE FROM cart_items WHERE productId = :productId")
-    suspend fun deleteCartItem(productId: String)
+    @Delete
+    suspend fun deleteCartItem(item: CartItemEntity)
 
     @Query("DELETE FROM cart_items")
     suspend fun clearCart()

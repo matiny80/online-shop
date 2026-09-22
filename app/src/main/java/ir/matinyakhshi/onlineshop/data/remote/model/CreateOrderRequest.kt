@@ -7,5 +7,6 @@ data class CreateOrderRequest(
     @SerializedName("receiver_name") val receiverName: String,
     @SerializedName("phone_number") val phoneNumber: String,
     @SerializedName("address") val address: String,
+    @SerializedName("postal_code") val postalCode: String,
     @SerializedName("items") val items: List<OrderItemDto>
 )

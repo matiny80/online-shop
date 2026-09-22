@@ -1,32 +1,44 @@
 package ir.matinyakhshi.onlineshop.presentation.home
 
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ir.matinyakhshi.onlineshop.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-// مدل ساده داده محصولات
+// مدل داده محصولات
 data class ProductItem(
     val id: String,
     val title: String,
@@ -34,121 +46,224 @@ data class ProductItem(
     val imageRes: Int
 )
 
-// مدل ساده دسته‌بندی‌ها
+// مدل دسته‌بندی‌ها
 data class CategoryItem(
+    val id: String,
     val title: String,
     val iconRes: Int
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     viewModel: StoreViewModel,
-    onNavigateToProductDetail: (String) -> Unit
+    onNavigateToProductDetail: (String) -> Unit,
+    onCategoryClick: (String) -> Unit = {}
 ) {
-    // لیست دسته‌بندی‌ها بر اساس فایل‌های drawable موجود در پروژه شما
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    // لیست دسته‌بندی‌ها
     val categories = listOf(
-        CategoryItem("کفش", R.drawable.shoes21),
-        CategoryItem("تی‌شرت", R.drawable.tshirt1),
-        CategoryItem("زنانه", R.drawable.woman1),
-        CategoryItem("بچگانه", R.drawable.babydress1)
+        CategoryItem("shoes", "کفش", R.drawable.shoes21),
+        CategoryItem("men", "مردانه", R.drawable.tshirt1),
+        CategoryItem("women", "زنانه", R.drawable.woman1),
+        CategoryItem("kids", "بچگانه", R.drawable.babydress1)
     )
 
-    // نمونه لیست محصولات
+    // لیست محصولات
     val products = listOf(
         ProductItem("1", "کفش ورزشی نایک", "۱,۲۵۰,۰۰۰ تومان", R.drawable.rectangle434),
-        ProductItem("2", "تی‌شرت اسپرت سبز", "۴۵۰,۰۰۰ تومان", R.drawable.tshirt1),
-        ProductItem("3", "پیراهن زنانه شیک", "۸۹۰,۰۰۰ تومان", R.drawable.woman1),
-        ProductItem("4", "لباس بچگانه", "۳۲۰,۰۰۰ تومان", R.drawable.babydress1)
+        ProductItem("2", "پیراهن مردانه", "۴۵۰,۰۰۰ تومان", R.drawable.image13),
+        ProductItem("3", "مانتو زنانه شیک", "۸۹۰,۰۰۰ تومان", R.drawable.image9),
+        ProductItem("4", "پیراهن مردانه", "۳۲۰,۰۰۰ تومان", R.drawable.image14),
+        ProductItem("5", "کفش ورزشی نایک", "۱,۲۵۰,۰۰۰ تومان", R.drawable.rectangle434),
+        ProductItem("6", "پیراهن مردانه", "۴۵۰,۰۰۰ تومان", R.drawable.image13),
+        ProductItem("7", "مانتو زنانه شیک", "۸۹۰,۰۰۰ تومان", R.drawable.image9),
+        ProductItem("8", "پیراهن مردانه", "۳۲۰,۰۰۰ تومان", R.drawable.image14)
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo),
-                            contentDescription = "لوگو",
-                            modifier = Modifier.size(32.dp)
+    // لیست ۲ بنر برای اسلایدر
+    val banners = listOf(R.drawable.baner, R.drawable.baner)
+    val pagerState = rememberPagerState(pageCount = { banners.size })
+
+    // تغییر خودکار بنرها هر ۵ ثانیه با انیمیشن ۰.۵ ثانیه‌ای
+    LaunchedEffect(pagerState.currentPage) {
+        delay(4000)
+        val nextPage = (pagerState.currentPage + 1) % banners.size
+        pagerState.animateScrollToPage(
+            page = nextPage,
+            animationSpec = tween(durationMillis = 300)
+        )
+    }
+
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet(
+                    modifier = Modifier.width(250.dp),
+                    drawerContainerColor = Color.White
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "دسته‌بندی‌ها",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF5722),
+                            modifier = Modifier.padding(vertical = 12.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("فروشگاه آنلاین", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
-                },
-                actions = {
-                    // جایگزینی با آیکون استاندارد منوی سه خط (Menu)
-                    IconButton(onClick = { /* باز کردن منو یا کشو */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "منو",
-                            tint = Color.Black
-                        )
+
+                        HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // منوی متنی دسته‌بندی‌ها
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(categories) { category ->
+                                Text(
+                                    text = category.title,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.DarkGray,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            scope.launch { drawerState.close() }
+                                            onCategoryClick(category.id)
+                                        }
+                                        .padding(vertical = 12.dp, horizontal = 8.dp)
+                                )
+                                HorizontalDivider(color = Color(0xFFF5F5F5))
+                            }
+                        }
                     }
                 }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+            }
         ) {
-            // ۱. بنر تبلیغاتی بالای صفحه
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .clip(RoundedCornerShape(16.dp))
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.baner),
-                    contentDescription = "بنر تخفیف",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // ۲. بخش دسته‌بندی‌ها (افقی)
-            Text(
-                text = "دسته‌بندی‌ها",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(categories) { category ->
-                    CategoryCard(category = category)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // ۳. بخش محصولات (شبکه‌ای/گرید)
-            Text(
-                text = "جدیدترین محصولات",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(products) { product ->
-                    ProductCard(
-                        product = product,
-                        onClick = { onNavigateToProductDetail(product.id) }
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        // ۱. آیکون منو سمت راست
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch { drawerState.open() }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "منو",
+                                    tint = Color.Black
+                                )
+                            }
+                        },
+                        // لوگو و متن عنوان سمت چپ
+                        title = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("فروشگاه آنلاین", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Image(
+                                    painter = painterResource(id = R.drawable.logo),
+                                    contentDescription = "لوگو",
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
                     )
+                }
+            ) { paddingValues ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // ۱. بنر تبلیغاتی تعویض شونده (دستی و خودکار)
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                        ) {
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxSize()
+                            ) { page ->
+                                Image(
+                                    painter = painterResource(id = banners[page]),
+                                    contentDescription = "بنر تخفیف",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+
+                    // ۲. بخش دسته‌بندی‌ها (افقی)
+                    item {
+                        Column {
+                            Text(
+                                text = "دسته‌بندی‌ها",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(categories) { category ->
+                                    CategoryCard(
+                                        category = category,
+                                        onClick = { onCategoryClick(category.id) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // ۳. عنوان محصولات
+                    item {
+                        Text(
+                            text = "جدیدترین محصولات",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // ۴. لیست گرید محصولات
+                    item {
+                        val rowCount = (products.size + 1) / 2
+                        val gridHeight = (rowCount * 200).dp
+
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            userScrollEnabled = false,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(gridHeight)
+                        ) {
+                            items(products) { product ->
+                                ProductCard(
+                                    product = product,
+                                    onClick = { onNavigateToProductDetail(product.id) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -156,10 +271,13 @@ fun HomeScreen(
 }
 
 @Composable
-fun CategoryCard(category: CategoryItem) {
+fun CategoryCard(
+    category: CategoryItem,
+    onClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { }
+        modifier = Modifier.clickable { onClick() }
     ) {
         Box(
             modifier = Modifier

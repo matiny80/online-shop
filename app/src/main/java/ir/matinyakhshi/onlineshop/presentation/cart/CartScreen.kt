@@ -1,87 +1,116 @@
 package ir.matinyakhshi.onlineshop.presentation.cart
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import ir.matinyakhshi.onlineshop.data.local.entity.CartItemEntity
+import androidx.compose.ui.unit.sp
+import ir.matinyakhshi.onlineshop.R
+
+// مدل ساده آیتم سبد خرید جهت نمایش در UI
+data class CartUiModel(
+    val id: String,
+    val title: String,
+    val price: Long,
+    val quantity: Int,
+    val imageRes: Int
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
-    onChangeAddressClick: () -> Unit,
-    onCheckoutClick: () -> Unit,
-    viewModel: CartViewModel = hiltViewModel()
+    onNavigateToCheckout: (String) -> Unit,
+    onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    // نمونه داده آزمایشی سبد خرید
+    val cartItems = listOf(
+        CartUiModel("1", "کفش ورزشی نایک", 1250000, 1, R.drawable.rectangle434),
+        CartUiModel("2", "تی‌شرت اسپرت سبز", 450000, 2, R.drawable.tshirt1)
+    )
+
+    val totalPrice = cartItems.sumOf { it.price * it.quantity }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("سبد خرید") })
+            TopAppBar(
+                title = { Text("سبد خرید", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "بازگشت")
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            if (cartItems.isNotEmpty()) {
+                Surface(
+                    shadowElevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(text = "مجموع قابل پرداخت", fontSize = 12.sp, color = Color.Gray)
+                            Text(
+                                text = "$totalPrice تومان",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF5722)
+                            )
+                        }
+                        Button(
+                            onClick = { onNavigateToCheckout("store_1") },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722))
+                        ) {
+                            Text(text = "ادامه و تسویه حساب", fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (val state = uiState) {
-                is CartUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is CartUiState.Empty -> {
-                    Text(
-                        text = "سبد خرید شما خالی است",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is CartUiState.Error -> {
-                    Text(
-                        text = state.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is CartUiState.Success -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(state.cartItems, key = { it.productId }) { item ->
-                                CartItemCard(
-                                    item = item,
-                                    onIncrease = { viewModel.increaseQuantity(item) },
-                                    onDecrease = { viewModel.decreaseQuantity(item) },
-                                    onRemove = { viewModel.removeItem(item) }
-                                )
-                            }
-                        }
-
-                        // بخش خلاصه فاکتور و دکمه پرداخت
-                        CartSummarySection(
-                            totalPrice = state.totalPrice,
-                            totalDiscount = state.totalDiscount,
-                            finalPrice = state.finalPrice,
-                            onCheckoutClick = onCheckoutClick
-                        )
-                    }
+        if (cartItems.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "سبد خرید شما خالی است", color = Color.Gray, fontSize = 16.sp)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                items(cartItems) { item ->
+                    CartItemCard(item = item)
                 }
             }
         }
@@ -89,29 +118,27 @@ fun CartScreen(
 }
 
 @Composable
-fun CartItemCard(
-    item: CartItemEntity,
-    onIncrease: () -> Unit,
-    onDecrease: () -> Unit,
-    onRemove: () -> Unit
-) {
+fun CartItemCard(item: CartUiModel) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+                .padding(12.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = item.imageUrl,
+            Image(
+                painter = painterResource(id = item.imageRes),
                 contentDescription = item.title,
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(MaterialTheme.shapes.small),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFFAFAFA)),
+                contentScale = ContentScale.Fit
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -119,107 +146,51 @@ fun CartItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "${item.price} تومان",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    fontSize = 13.sp,
+                    color = Color(0xFFFF5722),
+                    fontWeight = FontWeight.SemiBold
                 )
             }
 
-            // کنترل تعداد (بدون نیاز به آیکون Remove)
+            // بخش کنترل تعداد محصول
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFF5F5F5))
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
             ) {
-                IconButton(onClick = onDecrease, modifier = Modifier.size(32.dp)) {
-                    if (item.quantity == 1) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "حذف"
-                        )
-                    } else {
-                        Text(
-                            text = "−",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
+                IconButton(
+                    onClick = { /* افزایش تعداد */ },
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "افزایش", modifier = Modifier.size(16.dp))
                 }
 
                 Text(
                     text = item.quantity.toString(),
-                    style = MaterialTheme.typography.bodyLarge
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
-                IconButton(onClick = onIncrease, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "افزایش")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CartSummarySection(
-    totalPrice: Long,
-    totalDiscount: Long,
-    finalPrice: Long,
-    onCheckoutClick: () -> Unit
-) {
-    Surface(
-        shadowElevation = 8.dp,
-        tonalElevation = 2.dp
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("قیمت کل:")
-                Text("$totalPrice تومان")
-            }
-
-            if (totalDiscount > 0) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                IconButton(
+                    onClick = { /* کاهش یا حذف */ },
+                    modifier = Modifier.size(28.dp)
                 ) {
-                    Text("تخفیف:", color = MaterialTheme.colorScheme.error)
-                    Text("$totalDiscount تومان", color = MaterialTheme.colorScheme.error)
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "حذف/کاهش",
+                        tint = Color.Red,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
-            }
-
-            HorizontalDivider()
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("مبلغ قابل پرداخت:", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "$finalPrice تومان",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onCheckoutClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text("ادامه فرآیند خرید")
             }
         }
     }

@@ -27,7 +27,8 @@ class CheckoutViewModel @Inject constructor(
         storeId: String,
         receiverName: String,
         phoneNumber: String,
-        address: String
+        address: String,
+        postalCode: String // 👈 اضافه شد
     ) {
         viewModelScope.launch {
             _uiState.value = CheckoutUiState.Loading
@@ -42,7 +43,7 @@ class CheckoutViewModel @Inject constructor(
                     OrderItemDto(
                         productId = it.productId,
                         quantity = it.quantity,
-                        price = it.price
+                        price = it.price.toDouble()
                     )
                 }
 
@@ -51,6 +52,7 @@ class CheckoutViewModel @Inject constructor(
                     receiverName = receiverName,
                     phoneNumber = phoneNumber,
                     address = address,
+                    postalCode = postalCode, // 👈 به درخواست اضافه شد
                     items = orderItems
                 )
 
