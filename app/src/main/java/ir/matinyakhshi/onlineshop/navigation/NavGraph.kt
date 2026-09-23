@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
+import ir.matinyakhshi.onlineshop.presentation.address.AddressScreen
 import ir.matinyakhshi.onlineshop.presentation.auth.AuthScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryProductsScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
@@ -103,7 +104,7 @@ fun SetupNavGraph(
             )
         }
 
-        // ۵. صفحه محصولات دسته‌بندی انتخابی (استخراج categoryId از arguments)
+        // ۵. صفحه محصولات دسته‌بندی انتخابی
         composable(route = Screen.CategoryProducts.route) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
             CategoryProductsScreen(
@@ -115,7 +116,25 @@ fun SetupNavGraph(
             )
         }
 
-        // ۶. صفحه تاریخچه سفارشات
+        // ۶. صفحه آدرس‌ها
+        composable(route = Screen.Address.route) {
+            AddressScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onNavigateToCheckout = { selectedAddress ->
+                    // ۱. اگر می‌خواهی آدرس را به صفحه قبلی (مثلا سبد خرید) برگردانی:
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("selected_address_id", selectedAddress.id)
+
+                    // ۲. یا رفتن به صفحه Checkout:
+                    navController.navigate(Screen.Checkout.createRoute(defaultStoreId))
+                }
+            )
+        }
+
+        // ۷. صفحه تاریخچه سفارشات
         composable(route = Screen.OrdersHistory.route) {
             OrdersScreen(
                 onBackClick = { navController.popBackStack() },
@@ -123,7 +142,7 @@ fun SetupNavGraph(
             )
         }
 
-        // ۷. مسیرهای فرعی بخش پروفایل
+        // ۸. مسیرهای فرعی بخش پروفایل
         composable(route = Screen.ChangePassword.route) {
             ChangePasswordScreen(onBackClick = { navController.popBackStack() })
         }
