@@ -1,5 +1,6 @@
 package ir.matinyakhshi.onlineshop.presentation.home
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import ir.matinyakhshi.onlineshop.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +58,7 @@ data class CategoryItem(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
-    viewModel: StoreViewModel,
+    viewModel: StoreViewModel = hiltViewModel(),
     onNavigateToProductDetail: (String) -> Unit,
     onCategoryClick: (String) -> Unit = {}
 ) {
@@ -83,18 +85,23 @@ fun HomeScreen(
         ProductItem("8", "پیراهن مردانه", "۳۲۰,۰۰۰ تومان", R.drawable.image14)
     )
 
-    // لیست ۲ بنر برای اسلایدر
+    // لیست بنرها
     val banners = listOf(R.drawable.baner, R.drawable.baner)
     val pagerState = rememberPagerState(pageCount = { banners.size })
 
-    // تغییر خودکار بنرها هر ۵ ثانیه با انیمیشن ۰.۵ ثانیه‌ای
-    LaunchedEffect(pagerState.currentPage) {
-        delay(4000)
-        val nextPage = (pagerState.currentPage + 1) % banners.size
-        pagerState.animateScrollToPage(
-            page = nextPage,
-            animationSpec = tween(durationMillis = 300)
-        )
+    // تایمر مستقل بدون ری‌ست شدن با تغییر صفحه برای تکمیل کامل انیمیشن
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(4000)
+            val nextPage = (pagerState.currentPage + 1) % banners.size
+            pagerState.animateScrollToPage(
+                page = nextPage,
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = FastOutSlowInEasing
+                )
+            )
+        }
     }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -122,7 +129,6 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // منوی متنی دسته‌بندی‌ها
                         LazyColumn(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
@@ -150,7 +156,6 @@ fun HomeScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        // ۱. آیکون منو سمت راست
                         navigationIcon = {
                             IconButton(onClick = {
                                 scope.launch { drawerState.open() }
@@ -162,7 +167,6 @@ fun HomeScreen(
                                 )
                             }
                         },
-                        // لوگو و متن عنوان سمت چپ
                         title = {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -188,7 +192,7 @@ fun HomeScreen(
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // ۱. بنر تبلیغاتی تعویض شونده (دستی و خودکار)
+                    // ۱. بنر اسلایدر با انیمیشن روان
                     item {
                         Box(
                             modifier = Modifier
@@ -210,7 +214,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // ۲. بخش دسته‌بندی‌ها (افقی)
+                    // ۲. دسته‌بندی‌ها
                     item {
                         Column {
                             Text(
@@ -242,7 +246,7 @@ fun HomeScreen(
                         )
                     }
 
-                    // ۴. لیست گرید محصولات
+                    // ۴. لیست محصولات
                     item {
                         val rowCount = (products.size + 1) / 2
                         val gridHeight = (rowCount * 200).dp

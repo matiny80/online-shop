@@ -3,15 +3,16 @@ package ir.matinyakhshi.onlineshop.presentation.auth
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel // ایمپورت اضافه شد
 
 @Composable
 fun AuthScreen(
-    viewModel: AuthViewModel,
+    viewModel: AuthViewModel = hiltViewModel(), // مقدار پیش‌فرض Hilt اضافه شد
     onAuthSuccess: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -79,6 +80,8 @@ fun AuthScreen(
                 Text("ورود به برنامه")
             }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Button(
             onClick = { onAuthSuccess() }, // مستقیم به HomeScreen می‌رود

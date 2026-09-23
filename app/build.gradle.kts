@@ -95,6 +95,7 @@ dependencies {
 
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }

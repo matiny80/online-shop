@@ -21,6 +21,8 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
+    val isUserLoggedIn = tokenManager.token
+
     fun login(phoneNumber: String, otpCode: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
