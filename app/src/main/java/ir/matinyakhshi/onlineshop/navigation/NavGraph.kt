@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
 import ir.matinyakhshi.onlineshop.presentation.auth.AuthScreen
+import ir.matinyakhshi.onlineshop.presentation.category.CategoryProductsScreen
+import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
 import ir.matinyakhshi.onlineshop.presentation.main.MainScreen
 import ir.matinyakhshi.onlineshop.presentation.orders.OrdersScreen
 import ir.matinyakhshi.onlineshop.presentation.profile.ChangePasswordScreen
@@ -19,6 +21,9 @@ sealed class Screen(val route: String) {
     object Main : Screen("main_screen")
     object Home : Screen("home_screen")
     object Category : Screen("category_screen")
+    object CategoryProducts : Screen("category_products/{categoryId}") {
+        fun createRoute(categoryId: String) = "category_products/$categoryId"
+    }
     object Cart : Screen("cart_screen")
     object Profile : Screen("profile_screen")
 
@@ -87,7 +92,30 @@ fun SetupNavGraph(
             )
         }
 
-        // ۴. صفحه تاریخچه سفارشات
+        // ۴. صفحه دسته‌بندی‌ها
+        composable(route = Screen.Category.route) {
+            CategoryScreen(
+                onCategoryClick = { categoryId ->
+                    navController.navigate(Screen.CategoryProducts.createRoute(categoryId))
+                },
+                onBackClick = { navController.popBackStack() },
+                onNotificationClick = { navController.navigate(Screen.Notifications.route) }
+            )
+        }
+
+        // ۵. صفحه محصولات دسته‌بندی انتخابی (استخراج categoryId از arguments)
+        composable(route = Screen.CategoryProducts.route) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+            CategoryProductsScreen(
+                categoryId = categoryId,
+                onProductClick = { productId ->
+                    navController.navigate(Screen.ProductDetail.createRoute(productId))
+                },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // ۶. صفحه تاریخچه سفارشات
         composable(route = Screen.OrdersHistory.route) {
             OrdersScreen(
                 onBackClick = { navController.popBackStack() },
@@ -95,7 +123,7 @@ fun SetupNavGraph(
             )
         }
 
-        // ۵. مسیرهای فرعی بخش پروفایل
+        // ۷. مسیرهای فرعی بخش پروفایل
         composable(route = Screen.ChangePassword.route) {
             ChangePasswordScreen(onBackClick = { navController.popBackStack() })
         }

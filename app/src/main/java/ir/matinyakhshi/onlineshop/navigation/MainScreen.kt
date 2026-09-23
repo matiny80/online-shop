@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ir.matinyakhshi.onlineshop.navigation.Screen
+import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
 import ir.matinyakhshi.onlineshop.presentation.home.HomeScreen
 import ir.matinyakhshi.onlineshop.presentation.profile.ProfileScreen
 
@@ -125,12 +126,19 @@ fun MainScreen(
                         }
                     }
                 )
-
             }
 
             // ۲. صفحه دسته‌بندی
             composable(BottomNavItem.Category.route) {
-                // CategoryScreen(...)
+                CategoryScreen(
+                    onCategoryClick = { categoryId ->
+                        onNavigateToProductDetail(categoryId)
+                    },
+                    onBackClick = {
+                        bottomNavController.popBackStack()
+                    },
+                    onNotificationClick = onNavigateToNotifications
+                )
             }
 
             // ۳. صفحه سبد خرید
