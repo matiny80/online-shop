@@ -1,9 +1,9 @@
 package ir.matinyakhshi.onlineshop.presentation.detail
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,7 +47,6 @@ fun ProductDetailScreen(
     var isFavorite by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState()
-
 
     Scaffold(
         topBar = {
@@ -89,7 +90,7 @@ fun ProductDetailScreen(
                         Button(
                             onClick = {
                                 viewModel.addToCart(
-                                    productId = product.id.toString(),
+                                    productId = product.id,
                                     title = product.title,
                                     price = product.price
                                 )
@@ -117,7 +118,7 @@ fun ProductDetailScreen(
                                 color = Color.Gray
                             )
                             Text(
-                                text = "${product.price} تومان",
+                                text = product.price,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF212121)
@@ -138,7 +139,7 @@ fun ProductDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                // ۱. باکس تصویر محصول
+                // ۱. باکس تصویر اصلی محصول
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -147,11 +148,13 @@ fun ProductDetailScreen(
                         .background(Color(0xFFF5F5F5)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.ShoppingCart,
-                        contentDescription = "تصویر محصول",
-                        modifier = Modifier.size(100.dp),
-                        tint = Color.LightGray
+                    Image(
+                        painter = painterResource(id = product.imageRes),
+                        contentDescription = product.title,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp)
                     )
                 }
 
@@ -178,8 +181,8 @@ fun ProductDetailScreen(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = if (product.stockCount > 0) "موجود در انبار (${product.stockCount} عدد)" else "ناموجود",
-                            color = if (product.stockCount > 0) Color(0xFF2E7D32) else Color.Red,
+                            text = "موجود در انبار",
+                            color = Color(0xFF2E7D32),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -187,7 +190,7 @@ fun ProductDetailScreen(
                     }
 
                     Text(
-                        text = "دسته‌بندی: ${product.category}",
+                        text = "دسته‌بندی: پوشاک",
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
@@ -210,7 +213,7 @@ fun ProductDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = product.description.ifEmpty { "توضیحاتی ثبت نشده است." },
+                    text = "این محصول با بهترین کیفیت دوخت و پارچه تهیه شده و مناسب برای استفاده روزمره و مجلسی می‌باشد.",
                     fontSize = 14.sp,
                     color = Color(0xFF616161),
                     lineHeight = 22.sp,
