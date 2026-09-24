@@ -6,7 +6,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-
 import ir.matinyakhshi.onlineshop.presentation.address.AddressScreen
 import ir.matinyakhshi.onlineshop.presentation.admin.AddEditProductScreen
 import ir.matinyakhshi.onlineshop.presentation.admin.AdminDashboardScreen
@@ -14,6 +13,7 @@ import ir.matinyakhshi.onlineshop.presentation.auth.AuthScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryProductsScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
 import ir.matinyakhshi.onlineshop.presentation.checkout.CheckoutScreen
+import ir.matinyakhshi.onlineshop.presentation.detail.ProductDetailScreen
 import ir.matinyakhshi.onlineshop.presentation.main.MainScreen
 import ir.matinyakhshi.onlineshop.presentation.orders.OrdersScreen
 import ir.matinyakhshi.onlineshop.presentation.profile.ChangePasswordScreen
@@ -53,7 +53,7 @@ sealed class Screen(val route: String) {
     object AdminDashboard : Screen("admin_dashboard_screen")
     object AddEditProduct : Screen("add_edit_product_screen?productId={productId}") {
         fun createRoute(productId: String? = null) =
-            if (productId != null) "add_edit_product_screen?productId=$productId" else "add_edit_product_screen"
+            if (!productId.isNullOrEmpty()) "add_edit_product_screen?productId=$productId" else "add_edit_product_screen"
     }
 }
 
@@ -84,12 +84,12 @@ fun SetupNavGraph(
         composable(route = Screen.Auth.route) {
             AuthScreen(
                 onAuthSuccess = {
-                    navController.popBackStack() // حذف صفحه ورود
-                    navController.navigate(Screen.Main.route) // رفتن به برنامه اصلی
+                    navController.popBackStack()
+                    navController.navigate(Screen.Main.route)
                 },
                 onAdminAuthSuccess = {
-                    navController.popBackStack() // حذف صفحه ورود
-                    navController.navigate(Screen.AdminDashboard.route) // رفتن مستند به پنل ادمین
+                    navController.popBackStack()
+                    navController.navigate(Screen.AdminDashboard.route)
                 }
             )
         }
@@ -106,6 +106,18 @@ fun SetupNavGraph(
                 onNavigateToAddresses = { navController.navigate(Screen.Address.route) },
                 onNavigateToChangePassword = { navController.navigate(Screen.ChangePassword.route) },
                 onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) }
+            )
+        }
+
+        // ۳.۱. صفحه جزئیات محصول
+        composable(
+            route = Screen.ProductDetail.route,
+            arguments = listOf(navArgument("productId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId") ?: ""
+            ProductDetailScreen(
+                productId = productId,
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -157,7 +169,7 @@ fun SetupNavGraph(
             )
         }
 
-        // ۸. صفحه پیش‌فاکتور (اصلاح‌شده)
+        // ۸. صفحه پیش‌فاکتور
         composable(
             route = Screen.Checkout.route,
             arguments = listOf(navArgument("storeId") { type = NavType.StringType })
@@ -206,7 +218,7 @@ fun SetupNavGraph(
             )
         }
 
-        // ۱۱. افزودن / ویرایش محصول (اصلاح‌شده)
+        // ۱۱. افزودن / ویرایش محصول
         composable(
             route = Screen.AddEditProduct.route,
             arguments = listOf(

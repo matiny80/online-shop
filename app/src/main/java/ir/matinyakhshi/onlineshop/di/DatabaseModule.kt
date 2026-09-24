@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ir.matinyakhshi.onlineshop.data.local.AppDatabase
 import ir.matinyakhshi.onlineshop.data.local.dao.CartDao
+import ir.matinyakhshi.onlineshop.data.local.dao.ProductDao
 import javax.inject.Singleton
 
 @Module
@@ -33,5 +34,11 @@ object DatabaseModule {
     @Singleton
     fun provideCartDao(database: AppDatabase): CartDao {
         return database.cartDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductDao(database: AppDatabase): ProductDao {
+        return database.productDao()
     }
 }

@@ -40,12 +40,15 @@ import ir.matinyakhshi.onlineshop.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// مدل داده محصولات
+// مدل داده محصولات UI (با مقادیر پیش‌فرض برای حل خطاهای ProductDetailScreen بدون دستکاری لیست)
 data class ProductItem(
     val id: String,
     val title: String,
     val price: String,
-    val imageRes: Int
+    val imageRes: Int,
+    val category: String = "پوشاک",
+    val stockCount: Int = 10,
+    val description: String = "توضیحات محصول به زودی اضافه می‌شود."
 )
 
 // مدل دسته‌بندی‌ها
@@ -65,31 +68,33 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // لیست دسته‌بندی‌ها
+    // لیست دسته‌بندی‌ها (بدون تغییر)
     val categories = listOf(
-        CategoryItem("shoes", "کفش", R.drawable.shoes21),
         CategoryItem("men", "مردانه", R.drawable.tshirt1),
         CategoryItem("women", "زنانه", R.drawable.woman1),
-        CategoryItem("kids", "بچگانه", R.drawable.babydress1)
+        CategoryItem("kids", "دخترانه", R.drawable.babydress1),
+        CategoryItem("boy", "پسرانه", R.drawable.polo1),
+        CategoryItem("baby", "نوزادی", R.drawable.onesie1),
+        CategoryItem("shoes", "کفش", R.drawable.shoes21)
     )
 
-    // لیست محصولات
+    // لیست محصولات برای نمایش در Grid (بدون تغییر)
     val products = listOf(
-        ProductItem("1", "کفش ورزشی نایک", "۱,۲۵۰,۰۰۰ تومان", R.drawable.rectangle434),
-        ProductItem("2", "پیراهن مردانه", "۴۵۰,۰۰۰ تومان", R.drawable.image13),
+        ProductItem("1", "پیراهن مردانه", "۱,۲۵۰,۰۰۰ تومان", R.drawable.image16),
+        ProductItem("2", "پیراهن مردانه", "۴۵۰,۰۰۰ تومان", R.drawable.image8),
         ProductItem("3", "مانتو زنانه شیک", "۸۹۰,۰۰۰ تومان", R.drawable.image9),
         ProductItem("4", "پیراهن مردانه", "۳۲۰,۰۰۰ تومان", R.drawable.image14),
-        ProductItem("5", "کفش ورزشی نایک", "۱,۲۵۰,۰۰۰ تومان", R.drawable.rectangle434),
+        ProductItem("5", "کفش ورزشی نایک", "۱,۲۵۰,۰۰۰ تومان", R.drawable.image11),
         ProductItem("6", "پیراهن مردانه", "۴۵۰,۰۰۰ تومان", R.drawable.image13),
         ProductItem("7", "مانتو زنانه شیک", "۸۹۰,۰۰۰ تومان", R.drawable.image9),
-        ProductItem("8", "پیراهن مردانه", "۳۲۰,۰۰۰ تومان", R.drawable.image14)
+        ProductItem("8", "پیراهن مردانه", "۳۲۰,۰۰۰ تومان", R.drawable.image15)
     )
 
     // لیست بنرها
     val banners = listOf(R.drawable.baner, R.drawable.baner)
     val pagerState = rememberPagerState(pageCount = { banners.size })
 
-    // تایمر مستقل بدون ری‌ست شدن با تغییر صفحه برای تکمیل کامل انیمیشن
+    // تایمر اسلایدر
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000)
@@ -192,7 +197,7 @@ fun HomeScreen(
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // ۱. بنر اسلایدر با انیمیشن روان
+                    // ۱. بنر اسلایدر
                     item {
                         Box(
                             modifier = Modifier

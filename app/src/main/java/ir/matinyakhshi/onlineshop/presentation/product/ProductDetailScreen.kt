@@ -1,44 +1,259 @@
+package ir.matinyakhshi.onlineshop.presentation.detail
+
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ir.matinyakhshi.onlineshop.R
+import androidx.hilt.navigation.compose.hiltViewModel
+import ir.matinyakhshi.onlineshop.presentation.product.ProductDetailViewModel
 
-// مدل برای داده‌های هر گزینه
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductDetailScreen(
+    productId: String,
+    onBackClick: () -> Unit,
+    viewModel: ProductDetailViewModel = hiltViewModel()
+) {
+    LaunchedEffect(productId) {
+        if (productId.isNotEmpty()) {
+            viewModel.loadProduct(productId)
+        }
+    }
+
+    val productState by viewModel.product.collectAsState()
+
+    var showShareSheet by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(false) }
+
+    val sheetState = rememberModalBottomSheetState()
+
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "جزئیات محصول", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "بازگشت"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showShareSheet = true }) {
+                        Icon(imageVector = Icons.Default.Share, contentDescription = "اشتراک‌گذاری")
+                    }
+                    IconButton(onClick = { isFavorite = !isFavorite }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "علاقه‌مندی",
+                            tint = if (isFavorite) Color.Red else Color.Gray
+                        )
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            productState?.let { product ->
+                Surface(
+                    shadowElevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = {
+                                viewModel.addToCart(
+                                    productId = product.id.toString(),
+                                    title = product.title,
+                                    price = product.price
+                                )
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5722)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
+                        ) {
+                            Text(
+                                text = "افزودن به سبد خرید",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "قیمت محصول",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = "${product.price} تومان",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF212121)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    ) { paddingValues ->
+        val product = productState
+
+        if (product != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                // ۱. باکس تصویر محصول
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF5F5F5)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingCart,
+                        contentDescription = "تصویر محصول",
+                        modifier = Modifier.size(100.dp),
+                        tint = Color.LightGray
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // ۲. عنوان محصول
+                Text(
+                    text = product.title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF212121)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ۳. وضعیت موجودی و دسته‌بندی
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = Color(0xFFE8F5E9),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = if (product.stockCount > 0) "موجود در انبار (${product.stockCount} عدد)" else "ناموجود",
+                            color = if (product.stockCount > 0) Color(0xFF2E7D32) else Color.Red,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "دسته‌بندی: ${product.category}",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                HorizontalDivider(color = Color(0xFFEEEEEE))
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // ۴. توضیحات محصول
+                Text(
+                    text = "توضیحات محصول",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF212121)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = product.description.ifEmpty { "توضیحاتی ثبت نشده است." },
+                    fontSize = 14.sp,
+                    color = Color(0xFF616161),
+                    lineHeight = 22.sp,
+                    textAlign = TextAlign.Justify
+                )
+            }
+        } else {
+            // حالت لودینگ
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFFF5722))
+            }
+        }
+
+        if (showShareSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showShareSheet = false },
+                sheetState = sheetState
+            ) {
+                ShareBottomSheetContent(onDismiss = { showShareSheet = false })
+            }
+        }
+    }
+}
+
+// کامپوننت‌های اشتراک‌گذاری
 data class ShareOptionItem(
     val title: String,
-    val iconRes: Int? = null,
     val iconVector: ImageVector? = null,
     val iconTint: Color = Color.Unspecified
 )
 
 @Composable
 fun ShareBottomSheetContent(onDismiss: () -> Unit) {
-    // لیست گزینه‌ها بر اساس تصویر
     val shareOptions = listOf(
-        ShareOptionItem("تلگرام", iconVector = Icons.Default.DateRange, iconTint = Color(0xFF24A1DE)),
+        ShareOptionItem("تلگرام", iconVector = Icons.Default.Send, iconTint = Color(0xFF24A1DE)),
         ShareOptionItem("واتساپ", iconVector = Icons.Default.AccountCircle, iconTint = Color(0xFF25D366)),
         ShareOptionItem("پیامک", iconVector = Icons.Default.Email, iconTint = Color(0xFF4A4A4A)),
-        ShareOptionItem("کپی", iconVector = Icons.Default.Done, iconTint = Color(0xFFFF5722)),
+        ShareOptionItem("کپی لینک", iconVector = Icons.Default.Done, iconTint = Color(0xFFFF5722)),
         ShareOptionItem("سایر", iconVector = Icons.Default.Share, iconTint = Color(0xFFFF5722))
     )
 
@@ -47,47 +262,39 @@ fun ShareBottomSheetContent(onDismiss: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
+        Text(
+            text = "اشتراک‌گذاری محصول",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
         shareOptions.forEachIndexed { index, option ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        // اکشن اشتراک‌گذاری
-                        onDismiss()
-                    }
+                    .clickable { onDismiss() }
                     .padding(vertical = 14.dp),
-                horizontalArrangement = Arrangement.End, // چیدمان راست‌به‌چپ
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // متن گزینه
-                Text(
-                    text = option.title,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF212121)
-                )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // آیکون گزینه (وکتور یا تصویر)
-                if (option.iconRes != null) {
-                    Icon(
-                        painter = painterResource(id = option.iconRes),
-                        contentDescription = option.title,
-                        modifier = Modifier.size(28.dp),
-                        tint = Color.Unspecified
-                    )
-                } else if (option.iconVector != null) {
+                if (option.iconVector != null) {
                     Icon(
                         imageVector = option.iconVector,
                         contentDescription = option.title,
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(24.dp),
                         tint = option.iconTint
                     )
                 }
+
+                Text(
+                    text = option.title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF212121)
+                )
             }
 
-            // رسم خط نقطه‌چین بین آیتم‌ها
             if (index < shareOptions.size - 1) {
                 DashedDivider(
                     color = Color.LightGray.copy(alpha = 0.7f),
@@ -98,7 +305,6 @@ fun ShareBottomSheetContent(onDismiss: () -> Unit) {
     }
 }
 
-// کامپوننت سفارشی برای رسم خط نقطه‌چین (Dashed Line)
 @Composable
 fun DashedDivider(
     color: Color = Color.Gray,
