@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ir.matinyakhshi.onlineshop.navigation.Screen
+import ir.matinyakhshi.onlineshop.presentation.cart.CartScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
 import ir.matinyakhshi.onlineshop.presentation.home.HomeScreen
 import ir.matinyakhshi.onlineshop.presentation.profile.ProfileScreen
@@ -41,6 +42,7 @@ sealed class BottomNavItem(
 @Composable
 fun MainScreen(
     onNavigateToProductDetail: (String) -> Unit,
+    onNavigateToCart: () -> Unit = {},
     onNavigateToOrders: () -> Unit,
     onNavigateToFavorites: () -> Unit,
     onNavigateToExperiences: () -> Unit,
@@ -143,7 +145,14 @@ fun MainScreen(
 
             // ۳. صفحه سبد خرید
             composable(BottomNavItem.Cart.route) {
-                // CartScreen(...)
+                CartScreen(
+                    onNavigateToCheckout = { storeId ->
+                        // هدایت به پیش‌فاکتور
+                    },
+                    onBackClick = {
+                        bottomNavController.popBackStack()
+                    }
+                )
             }
 
             // ۴. صفحه پروفایل

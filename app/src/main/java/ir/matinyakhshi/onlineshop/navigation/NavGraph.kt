@@ -10,6 +10,7 @@ import ir.matinyakhshi.onlineshop.presentation.address.AddressScreen
 import ir.matinyakhshi.onlineshop.presentation.admin.AddEditProductScreen
 import ir.matinyakhshi.onlineshop.presentation.admin.AdminDashboardScreen
 import ir.matinyakhshi.onlineshop.presentation.auth.AuthScreen
+import ir.matinyakhshi.onlineshop.presentation.cart.CartScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryProductsScreen
 import ir.matinyakhshi.onlineshop.presentation.category.CategoryScreen
 import ir.matinyakhshi.onlineshop.presentation.checkout.CheckoutScreen
@@ -100,6 +101,9 @@ fun SetupNavGraph(
                 onNavigateToProductDetail = { productId ->
                     navController.navigate(Screen.ProductDetail.createRoute(productId))
                 },
+                onNavigateToCart = {
+                    navController.navigate(Screen.Cart.route)
+                },
                 onNavigateToOrders = { navController.navigate(Screen.OrdersHistory.route) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
                 onNavigateToExperiences = { navController.navigate(Screen.PurchaseExperiences.route) },
@@ -117,6 +121,16 @@ fun SetupNavGraph(
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
             ProductDetailScreen(
                 productId = productId,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // ۳.۲. صفحه سبد خرید
+        composable(route = Screen.Cart.route) {
+            CartScreen(
+                onNavigateToCheckout = { storeId ->
+                    navController.navigate(Screen.Checkout.createRoute(storeId))
+                },
                 onBackClick = { navController.popBackStack() }
             )
         }
